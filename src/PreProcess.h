@@ -15,7 +15,7 @@ private:
 	string inputFilePath;
 	Mat inputImage;
 	Mat outputImage;
-	string outputFilePath;
+	Mat finalImage;
 
 public:
 	/**
@@ -40,7 +40,7 @@ public:
 	static void gaussian(int size, void * data);
 	//Dilatation vertical (kernel de 1)
 	static void dilatation(int size, void * data);
-
+	static void save(int event, int x, int y, int flags, void* userdata);
 
 
 };

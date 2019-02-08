@@ -2,6 +2,7 @@
 using namespace std;
 
 #include "PreProcess.h"
+#include "LineDetection.h"
 
 int main(int argc, char** argv) {
 	if (argc != 2) {
@@ -17,4 +18,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 	filter.show();
+
+	waitKey(0);
+	
 }

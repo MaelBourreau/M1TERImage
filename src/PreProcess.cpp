@@ -9,20 +9,23 @@ int dilatation_ksize = 2;
 
 
 
-PreProcess::PreProcess() {
+PreProcess::PreProcess() 
+{
 }
 
-PreProcess::~PreProcess() {
+PreProcess::~PreProcess() 
+{
 }
 
-bool PreProcess::open(string filePath) {
+bool PreProcess::open(string filePath) 
+{
 	inputImage = imread(filePath, IMREAD_COLOR);
 	if (inputImage.empty())
 		return false;
+	finalImage = inputImage.clone();
 
-	stringstream ss;
-	ss << filePath << "Blurred.png";
-	this->outputFilePath = ss.str();
+	inputFilePath = filePath;
+
 	return true;
 }
 
@@ -30,11 +33,12 @@ void PreProcess::gaussian(int size, void * data)
 {
 	
 	Mat outputImage = ((PreProcess *)data)->outputImage.clone();
-	Mat tmp = outputImage.clone();
+	Mat tmp2 = outputImage.clone();
 	if (size%2 == 0)
 		size++;
-	GaussianBlur(outputImage, tmp,Size(size,size), 0);
-	imshow("Input Image", tmp);
+	GaussianBlur(outputImage, tmp2,Size(size,size), 0);
+	GaussianBlur(tmp2, ((PreProcess *)data)->finalImage,Size(size,size), 0);
+	imshow("Input Image", ((PreProcess *)data)->finalImage);
 
 }
 
@@ -60,8 +64,20 @@ void PreProcess::show() {
 
 	createTrackbar("Dilatation","Input Image", &gaussian_ksize,  50, dilatation, this);
 	createTrackbar("Gaussien", "Input Image", &gaussian_ksize, 100, gaussian, this);
+	
+	setMouseCallback("Input Image",save, this);
+
 
 	imshow("Input Image", inputImage);
+	
 	waitKey(0);
 }
 
+void PreProcess::save(int event, int x, int y, int flags, void* userdata)
+{
+
+	if( event == EVENT_LBUTTONDOWN )
+	{
+		imwrite("../../imres/gaussian.jpg",((PreProcess *)userdata)->finalImage.clone());
+	}
+}

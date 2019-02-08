@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/mael/PROJET/M1TERImage/src/LineDetection.cpp
+LineDetection.h
+/home/mael/PROJET/M1TERImage/src/LineDetection.h
+
+/home/mael/PROJET/M1TERImage/src/LineDetection.h
+iostream
+-
+opencv2/opencv.hpp
+-
+
+/home/mael/PROJET/M1TERImage/src/PreProcess.cpp
+PreProcess.h
+/home/mael/PROJET/M1TERImage/src/PreProcess.h
+
+/home/mael/PROJET/M1TERImage/src/PreProcess.h
+iostream
+-
+opencv2/opencv.hpp
+-
+
+/home/mael/PROJET/M1TERImage/src/main.cpp
+iostream
+-
+PreProcess.h
+/home/mael/PROJET/M1TERImage/src/PreProcess.h
+LineDetection.h
+/home/mael/PROJET/M1TERImage/src/LineDetection.h
+

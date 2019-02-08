@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/mael/PROJET/M1TERImage/src/build",
+  "command": "/usr/bin/g++-5    -I/usr/include/opencv  -std=c++11 -g   -o CMakeFiles/detectionLigne.dir/main.cpp.o -c /home/mael/PROJET/M1TERImage/src/main.cpp",
+  "file": "/home/mael/PROJET/M1TERImage/src/main.cpp"
+},
+{
+  "directory": "/home/mael/PROJET/M1TERImage/src/build",
+  "command": "/usr/bin/g++-5    -I/usr/include/opencv  -std=c++11 -g   -o CMakeFiles/detectionLigne.dir/PreProcess.cpp.o -c /home/mael/PROJET/M1TERImage/src/PreProcess.cpp",
+  "file": "/home/mael/PROJET/M1TERImage/src/PreProcess.cpp"
+},
+{
+  "directory": "/home/mael/PROJET/M1TERImage/src/build",
+  "command": "/usr/bin/g++-5    -I/usr/include/opencv  -std=c++11 -g   -o CMakeFiles/detectionLigne.dir/LineDetection.cpp.o -c /home/mael/PROJET/M1TERImage/src/LineDetection.cpp",
+  "file": "/home/mael/PROJET/M1TERImage/src/LineDetection.cpp"
+}
+]
