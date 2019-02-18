@@ -19,6 +19,8 @@ opencv2/opencv.hpp
 /home/mael/PROJET/M1TERImage/src/PreProcess.cpp
 PreProcess.h
 /home/mael/PROJET/M1TERImage/src/PreProcess.h
+LineDetection.h
+/home/mael/PROJET/M1TERImage/src/LineDetection.h
 
 /home/mael/PROJET/M1TERImage/src/PreProcess.h
 iostream

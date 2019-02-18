@@ -14,19 +14,21 @@ class LineDetection {
 private:
 	
 	Mat inputImage;
-	Mat outputImage;
+	Mat baseImage;
 	
 
 public:
 	/**
 	 * Default constructor
 	 */
-	LineDetection();
+	LineDetection(Mat image, Mat imageBase);
 	/**
 	 * Destructor
 	 */
 	virtual ~LineDetection();
-	
+	void detectLine();
+
+
 	static void save(int event, int x, int y, int flags, void* userdata);
 
 };

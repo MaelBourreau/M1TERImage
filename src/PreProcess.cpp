@@ -1,4 +1,6 @@
 #include "PreProcess.h"
+#include "LineDetection.h"
+
 
 
 //global variables
@@ -20,9 +22,11 @@ PreProcess::~PreProcess()
 bool PreProcess::open(string filePath) 
 {
 	inputImage = imread(filePath, IMREAD_COLOR);
+	//cvtColor(tmp, inputImage, CV_RGB2GRAY);
 	if (inputImage.empty())
 		return false;
 	finalImage = inputImage.clone();
+	
 
 	inputFilePath = filePath;
 
@@ -75,9 +79,14 @@ void PreProcess::show() {
 
 void PreProcess::save(int event, int x, int y, int flags, void* userdata)
 {
-
 	if( event == EVENT_LBUTTONDOWN )
 	{
 		imwrite("../../imres/gaussian.jpg",((PreProcess *)userdata)->finalImage.clone());
+
+		LineDetection ld(((PreProcess *)userdata)->finalImage, ((PreProcess *)userdata)->inputImage);
+		ld.detectLine();
+
 	}
+
+
 }

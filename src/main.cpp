@@ -9,6 +9,7 @@ int main(int argc, char** argv) {
 		cout << "Usage: detectionLigne <Image_Path>" << endl;
 		return -1;
 	}
+	
 
 	PreProcess filter;
 	bool opened = filter.open(argv[1]);
@@ -18,7 +19,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 	filter.show();
-
+	
 	waitKey(0);
 	
 }
