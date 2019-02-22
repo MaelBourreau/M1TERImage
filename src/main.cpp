@@ -18,7 +18,11 @@ int main(int argc, char** argv) {
 		cout << "Usage: imageBlur <Image_Path>" << endl;
 		return -1;
 	}
+	Mat img;
+	
 	filter.show();
+
+
 	
 	waitKey(0);
 	

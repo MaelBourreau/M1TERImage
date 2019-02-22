@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/detectionLigne",
-            "args": ["${workspaceFolder}/../img/texte.png"],
+            "args": ["${workspaceFolder}/../img/lettre_manscrite.jpg"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

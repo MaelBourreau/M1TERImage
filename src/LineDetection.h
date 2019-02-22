@@ -14,7 +14,14 @@ class LineDetection {
 private:
 	
 	Mat inputImage;
+	Mat lineMask;
+	Mat greenLineMask;
+	Mat redLineMask;
 	Mat baseImage;
+	vector<int> maximums;
+
+
+
 	
 
 public:
@@ -27,6 +34,10 @@ public:
 	 */
 	virtual ~LineDetection();
 	void detectLine();
+	void greenProjection();
+	void redLineRegression();
+	
+
 
 
 	static void save(int event, int x, int y, int flags, void* userdata);
