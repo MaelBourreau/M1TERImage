@@ -17,7 +17,11 @@ private:
 	Mat lineMask;
 	Mat greenLineMask;
 	Mat redLineMask;
+	Mat rainbowMask;
+
 	Mat baseImage;
+	Mat demoImage;
+
 	vector<int> maximums;
 
 
@@ -36,7 +40,9 @@ public:
 	void detectLine();
 	void greenProjection();
 	void redLineRegression();
-	
+	Mat getBaseImage();
+
+	void TextColoring();
 
 
 

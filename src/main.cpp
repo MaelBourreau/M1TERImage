@@ -20,10 +20,17 @@ int main(int argc, char** argv) {
 	}
 	Mat img;
 	
-	filter.show();
+	filter.process();
+	imwrite("../../imres/gaussian.jpg",filter.getFinalImage());
+	LineDetection detector(filter.getFinalImage(), filter.getInputImage());
 
+	detector.detectLine();
+
+
+	Mat inputImage = imread(argv[1], IMREAD_COLOR);
 
 	
 	waitKey(0);
-	
+
+
 }

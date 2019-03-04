@@ -32,10 +32,15 @@ public:
 	 */
 	bool open(string filePath);
 
+	Mat getFinalImage();
+	Mat getInputImage();
+	
+
+
 	/**
 	 * Shows the interface with the input image
 	 */
-	void show();
+	void process();
 
 	static void gaussian(int size, void * data);
 	//Dilatation vertical (kernel de 1)

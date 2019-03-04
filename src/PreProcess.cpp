@@ -63,7 +63,7 @@ void PreProcess::dilatation(int size, void* data){
 
 }
 
-void PreProcess::show() {
+void PreProcess::process() {
 	namedWindow("Input Image", WINDOW_AUTOSIZE);
 
 	dilatation(24, this);
@@ -72,9 +72,7 @@ void PreProcess::show() {
 	//createTrackbar("Dilatation","Input Image", &gaussian_ksize,  50, dilatation, this);
 	//createTrackbar("Gaussien", "Input Image", &gaussian_ksize, 100, gaussian, this);
 	
-	setMouseCallback("Input Image",save, this);
-
-
+	//setMouseCallback("Input Image",save, this);	
 	imshow("Input Image", inputImage);
 	
 }
@@ -91,4 +89,15 @@ void PreProcess::save(int event, int x, int y, int flags, void* userdata)
 	}
 
 
+}
+
+Mat PreProcess::getFinalImage()
+{
+	return this->finalImage.clone();
+
+}
+
+Mat PreProcess::getInputImage()
+{
+	return this->inputImage.clone();
 }
