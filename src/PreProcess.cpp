@@ -79,14 +79,6 @@ void PreProcess::process() {
 
 void PreProcess::save(int event, int x, int y, int flags, void* userdata)
 {
-	if( event == EVENT_LBUTTONDOWN )
-	{
-		imwrite("../../imres/gaussian.jpg",((PreProcess *)userdata)->finalImage.clone());
-
-		LineDetection ld(((PreProcess *)userdata)->finalImage, ((PreProcess *)userdata)->inputImage);
-		ld.detectLine();
-
-	}
 
 
 }

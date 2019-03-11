@@ -6,5 +6,5 @@ CXX_FLAGS = -std=c++11 -g
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/usr/include/opencv 
+CXX_INCLUDES = -I/usr/include/opencv -I/usr/local/include 
 

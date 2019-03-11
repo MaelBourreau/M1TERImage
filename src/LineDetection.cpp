@@ -1,10 +1,12 @@
 #include "LineDetection.h"
 
-LineDetection::LineDetection(Mat image, Mat imageBase)
+LineDetection::LineDetection(Mat image, Mat imageBase, string imageName)
 {
     inputImage = image;
     baseImage = imageBase;
     demoImage = baseImage.clone();
+    this->imageName = imageName;
+    
 }
 
 LineDetection::~LineDetection()
@@ -55,8 +57,7 @@ void LineDetection::detectLine()
 
     inputImage = imagetmp;
 
-    namedWindow("LES LIGNES", WINDOW_AUTOSIZE);
-    imshow("LES LIGNES", lineMask);
+    
     imwrite("../../imres/res.jpg", imagetmp);
 
     this->lineMask = lineMask;
@@ -64,35 +65,55 @@ void LineDetection::detectLine()
     this->redLineMask = redLineMask;
     this->baseImage = imagetmp;
 
-    greenProjection();
+    
 }
 
 void LineDetection::greenProjection()
 {
 
     Mat element = getStructuringElement(MORPH_RECT,
-                                        Size(1, 3));
+                                        Size(1, 15));
     Mat masktmp = lineMask.clone();
+    Mat blueMask = Mat::zeros(cv::Size(lineMask.cols, lineMask.rows), lineMask.type());
 
-    dilate(masktmp, lineMask, element);
+    dilate(lineMask, masktmp, element);
 
-    vector<int> projection = vector<int>(lineMask.rows, 0);
+    vector<int> projection = vector<int>(masktmp.rows, 0);
     vector<int> result;
-
-    for (int i = 0; i < lineMask.rows; i++)
+    long moyenne = 0;
+    int lignesvert=0;
+    for (int i = 0; i < masktmp.rows; i++)
     {
-        for (int j = 0; j < lineMask.cols; j++)
+        for (int j = 0; j < masktmp.cols; j++)
         {
-            if (lineMask.at<Vec3b>(i, j)[2] == 0 && lineMask.at<Vec3b>(i, j)[1] == 255 && lineMask.at<Vec3b>(i, j)[0] == 0)
+            if (masktmp.at<Vec3b>(i, j)[2] == 0 && masktmp.at<Vec3b>(i, j)[1] == 255 && masktmp.at<Vec3b>(i, j)[0] == 0)
             {
                 projection[i]++;
+                moyenne++;
+
                 baseImage.at<Vec3b>(i, projection[i]) = {0, 255, 0};
             }
         }
-        if (projection[i] < 15)
-            projection[i] = 0;
+        if(projection[i]>0)
+            lignesvert++;
+
+        
 
     }
+     moyenne/=lignesvert;
+     moyenne=1.2*moyenne;
+
+
+     for (int i = 0; i < projection.size(); i ++)
+     {
+         if (projection[i] < moyenne)
+         {
+             int prevProjection  = projection[i];
+
+             projection[i] = 0;
+            cv::line(baseImage, Point(0, i), Point(prevProjection, i), Scalar(255, 255, 255));
+         }
+     }
 
     int curmax = 0;
     int curmaxi = 0;
@@ -111,58 +132,58 @@ void LineDetection::greenProjection()
         }
         if (projection[i] == 0 && curmaxi > 0)
         {
-            nombredezeros++;
-            if (nombredezeros == 5 && nombredeverts > 10)
-            {
-                line(baseImage, Point(projection[curmaxi], curmaxi), Point(baseImage.rows - 1, curmaxi), Scalar(255, 0, 0));
+                cv::line(blueMask, Point(0, curmaxi), Point(baseImage.rows - 1, curmaxi), Scalar(255, 0, 0));
+                cv::line(baseImage, Point(projection[curmaxi], curmaxi), Point(baseImage.rows - 1, curmaxi), Scalar(255, 0, 0));
                 result.push_back(curmaxi);
 
                 nombredezeros = 0;
                 curmax = 0;
                 curmaxi = 0;
                 nombredeverts = 0;
-            }
-            else if (nombredezeros == 5 && nombredeverts < 10)
-            {
-                nombredeverts = 0;
-                nombredezeros = 0;
-                curmax = 0;
-                curmaxi = 0;
-            }
+       
         }
-        else if (projection[i] != 0 && nombredezeros != 0)
-        {
-            nombredezeros = 0;
-        }
+      
     }
     this->baseImage = baseImage;
+    this->blueMask = blueMask;
+
 
     maximums = result;
-    redLineRegression();
+
+    
+        imwrite("../../imres/final.jpg", baseImage);
+    
 }
 
 void LineDetection::redLineRegression()
 {
+
+    
+
     int prev_max = maximums[0];
     RNG rng(12345);
     Mat rainbowMask = Mat::zeros(cv::Size(baseImage.cols, baseImage.rows), baseImage.type());
     for (int i = 1; i < maximums.size(); ++i)
     {
-        vector<Point> points;
+        vector<Point2f> points;
         for (int rows = prev_max; rows < maximums[i]; rows++)
         {
             for (int cols = 0; cols < lineMask.cols; cols++)
             {
 
-                if (lineMask.at<Vec3b>(rows, cols)[2] == 255 && lineMask.at<Vec3b>(rows, cols)[1] == 0 && lineMask.at<Vec3b>(rows, cols)[0] == 0)
+                if (lineMask.at<Vec3b>(rows, cols)[2] == 255)
                 {
-                    points.push_back(Point(cols, rows));
+                    points.push_back(Point2f(cols, rows));
                 }
             }
         }
-        Vec4f ligne;
 
-        fitLine(points, ligne, CV_DIST_L1, 0, 0.01, 0.01);
+        Vec4f ligne;
+        
+
+        if (points.size()> 0)
+        {
+            fitLine(points, ligne, CV_DIST_L2, 0, 0.01, 0.01);
 
         //line sous forme de vecteur, donc on le convertis
         float vx = ligne[0];
@@ -179,16 +200,17 @@ void LineDetection::redLineRegression()
         line(rainbowMask, p1, p2, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)));
 
         line(baseImage, p1, p2, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)));
-
+            
+        }
+         
+        
         prev_max = maximums[i];
-
-        namedWindow("Approximation Lignes", WINDOW_AUTOSIZE);
-        imshow("Approximation Lignes", baseImage);
-        imwrite("../../imres/final.jpg", baseImage);
+        
     }
+    
     this->rainbowMask = rainbowMask;
 
-    TextColoring();
+    
 }
 
 Mat LineDetection::getBaseImage()
@@ -199,6 +221,8 @@ Mat LineDetection::getBaseImage()
 void LineDetection::TextColoring()
 {
     int seuil = 100;
+    int interval = 100;
+
 
     for (int rows = 0; rows < rainbowMask.rows; rows++)
     {
@@ -211,15 +235,66 @@ void LineDetection::TextColoring()
 
                     if (demoImage.at<Vec3b>(rows, cols) != rainbowMask.at<Vec3b>(rows, cols))
                     {
-                        floodFill(demoImage, Point(cols, rows), Scalar(rainbowMask.at<Vec3b>(rows, cols)[0], rainbowMask.at<Vec3b>(rows, cols)[1], rainbowMask.at<Vec3b>(rows, cols)[2]), 0, Scalar(70, 70, 70), Scalar(70, 70, 70), FLOODFILL_FIXED_RANGE);
+                        floodFill(demoImage, Point(cols, rows), Scalar(rainbowMask.at<Vec3b>(rows, cols)[0], rainbowMask.at<Vec3b>(rows, cols)[1], rainbowMask.at<Vec3b>(rows, cols)[2]), 0, Scalar(interval, interval, interval), Scalar(interval, interval, interval), FLOODFILL_FIXED_RANGE);
                     }
                 }
             }
         }
     }
-    namedWindow("CEVRAIMENTBO", WINDOW_AUTOSIZE);
-    imshow("CEVRAIMENTBO", demoImage);
-    imwrite("../../imres/cebo.jpg", demoImage);
+    this->demoImage = demoImage;
+    
+    affichage();
+
+
+    
+
+    
+}
+
+
+void LineDetection::affichage()
+{
+     for (int rows = 0; rows < demoImage.rows; rows++)
+    {
+        for (int cols = 0; cols < demoImage.cols; cols++)
+        {
+            /*
+            if (blueMask.at<Vec3b>(rows,cols)[0] != 0)
+            {
+                demoImage.at<Vec3b>(rows,cols)[0]=255;
+                demoImage.at<Vec3b>(rows,cols)[1]=0;
+                demoImage.at<Vec3b>(rows,cols)[2]=0;
+            }
+            
+            if (rainbowMask.at<Vec3b>(rows,cols)[0] != 0 || rainbowMask.at<Vec3b>(rows,cols)[1] != 0 || rainbowMask.at<Vec3b>(rows,cols)[1] != 0)
+            {
+                demoImage.at<Vec3b>(rows,cols) = rainbowMask.at<Vec3b>(rows,cols);
+
+            }
+            */
+        
+        }
+    }
+
+    namedWindow("LES LIGNES", WINDOW_AUTOSIZE);
+    imshow("LES LIGNES", lineMask);
+
+    namedWindow("Approximation Lignes", WINDOW_AUTOSIZE);
+        imshow("Approximation Lignes", baseImage);
+        imwrite("../../imres/final.jpg", baseImage);
+
+        
+    namedWindow("Blue Image", WINDOW_AUTOSIZE);
+    imshow("Blue Image", blueMask);
+
+    namedWindow("Final Image", WINDOW_AUTOSIZE);
+    imshow("Final Image", demoImage);
+    imwrite("../../imres/final_image.jpg", demoImage);
+}
+Mat LineDetection::getFinalImage()
+{
+    return this->demoImage;
+
 }
 void LineDetection::save(int event, int x, int y, int flags, void *userdata)
 {
