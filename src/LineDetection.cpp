@@ -1,4 +1,9 @@
 #include "LineDetection.h"
+#include <cstdio>
+#include <iostream>
+#include <fstream>
+
+
 
 LineDetection::LineDetection(Mat image, Mat imageBase, string imageName)
 {
@@ -71,7 +76,7 @@ void LineDetection::detectLine()
 void LineDetection::greenProjection()
 {
 
-    Mat element = getStructuringElement(MORPH_RECT,
+        Mat element = getStructuringElement(MORPH_RECT,
                                         Size(1, 15));
     Mat masktmp = lineMask.clone();
     Mat blueMask = Mat::zeros(cv::Size(lineMask.cols, lineMask.rows), lineMask.type());
@@ -152,6 +157,7 @@ void LineDetection::greenProjection()
 
     
         imwrite("../../imres/final.jpg", baseImage);
+
     
 }
 
@@ -243,7 +249,7 @@ void LineDetection::TextColoring()
     }
     this->demoImage = demoImage;
     
-    affichage();
+    
 
 
     
@@ -296,6 +302,74 @@ Mat LineDetection::getFinalImage()
     return this->demoImage;
 
 }
+int LineDetection::getMaximumSize()
+{
+    return maximums.size();
+}
+
 void LineDetection::save(int event, int x, int y, int flags, void *userdata)
 {
+}
+
+void LineDetection::writeEvalutation(string path)
+{
+    vector<Vec3b> couleursVisite;
+    couleursVisite.push_back({255,255,255});
+    long count= 0 ;
+    ofstream file;
+    file.open(path);
+
+        unsigned int *IM_SegmResult = (unsigned int *) calloc (demoImage.cols*demoImage.rows,sizeof(int));
+    FILE * pFile = fopen(path.c_str(), "w");
+
+     for (int rows = 0; rows < demoImage.rows; rows++)
+    {
+        for (int cols = 0; cols < demoImage.cols; cols++)
+        {
+            count ++;
+            bool find=false;
+           for(unsigned int tmpindice =0; tmpindice < couleursVisite.size();tmpindice++)
+           {
+               if(couleursVisite[tmpindice][0]==demoImage.at<Vec3b>(rows,cols)[0] && 
+               couleursVisite[tmpindice][1]==demoImage.at<Vec3b>(rows,cols)[1] && 
+               couleursVisite[tmpindice][2]==demoImage.at<Vec3b>(rows,cols)[2])
+               {
+                   //file <<  tmpindice;
+                    char * buff = new char[sizeof(int)];
+                *buff = tmpindice;
+               file.write(buff, sizeof(int));
+               delete[] buff;
+
+                   IM_SegmResult[count]=tmpindice;
+                   find=true;
+                   break;
+               }
+           }
+           if(!find)
+           {
+               couleursVisite.push_back(demoImage.at<Vec3b>(rows,cols));
+               // test avec .write()
+               
+                char * buff = new char[sizeof(int)];
+                *buff = couleursVisite.size()-1;
+               //file.write(buff, sizeof(int));
+
+               //delete[] buff;
+
+               IM_SegmResult[count]=couleursVisite.size() -1;
+               
+           }
+         
+            
+        }
+
+        
+
+    }
+   // file.close();
+
+    
+    fwrite(IM_SegmResult,sizeof(int), demoImage.cols*demoImage.rows, pFile);
+    fclose(pFile);
+    
 }

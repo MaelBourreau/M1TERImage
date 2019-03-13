@@ -9,6 +9,12 @@
 /home/mael/PROJET/M1TERImage/src/LineDetection.cpp
 LineDetection.h
 /home/mael/PROJET/M1TERImage/src/LineDetection.h
+cstdio
+-
+iostream
+-
+fstream
+-
 
 /home/mael/PROJET/M1TERImage/src/LineDetection.h
 iostream

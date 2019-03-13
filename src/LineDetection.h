@@ -47,6 +47,10 @@ public:
 	void redLineRegression();
 	Mat getBaseImage();
 	Mat getFinalImage();
+	int getMaximumSize();
+	void writeEvalutation(string path);
+
+	
 	
 
 	void TextColoring();

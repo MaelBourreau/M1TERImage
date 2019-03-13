@@ -9,7 +9,39 @@ using namespace boost::filesystem;
 
 int main(int argc, char** argv) {
 
-	
+	if (argc == 2)
+	{
+		PreProcess filter;
+				bool opened = filter.open(argv[1]);
+				path p(argv[1]);
+
+
+				if (!opened) {
+					cerr << "Error opening image" << endl;
+					cout << "Usage: imageBlur <Image_Path>" << endl;
+					return -1;
+				}
+				
+				
+				filter.process();
+				//imwrite("../../imres/gaussian.jpg",filter.getFinalImage());
+				LineDetection detector(filter.getFinalImage(), filter.getInputImage(), "salut");
+
+				detector.detectLine();
+				detector.greenProjection();
+				detector.redLineRegression();
+				detector.TextColoring();
+				detector.affichage();
+				
+				detector.writeEvalutation("../../result/" + p.filename().string() + ".dat");
+
+				waitKey(0);
+				
+
+				return 0;
+
+
+	}
 	path src_directory("../../images");
 
 	if (is_directory(src_directory))
@@ -26,7 +58,7 @@ int main(int argc, char** argv) {
 		{ 
 			if(is_regular_file(p))
 			{
-				cout << "processing file" << p.filename().string() << "| " << compteur << "/" << cnt << endl;
+				cout << "processing file " << p.filename().string() << "| " << compteur << "/" << cnt << endl;
 
 		
 				PreProcess filter;
@@ -44,11 +76,20 @@ int main(int argc, char** argv) {
 
 				detector.detectLine();
 				detector.greenProjection();
-				detector.redLineRegression();
-				detector.TextColoring();
-				//detector.affichage();
-
-				imwrite("../../result/" + p.filename().string(),detector.getFinalImage() );
+				if (detector.getMaximumSize() == 0)
+				{
+					imwrite("../../result/" + p.filename().string(),filter.getInputImage() );
+					
+				}
+				else
+				{
+					detector.redLineRegression();
+					detector.TextColoring();
+					//detector.affichage();
+					detector.writeEvalutation("../../result/" + p.filename().string() + ".dat");
+					//imwrite("../../result/" + p.filename().string(),detector.getFinalImage() );
+				}
+				
 			} 
 			compteur++;
 
