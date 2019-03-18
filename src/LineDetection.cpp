@@ -3,15 +3,12 @@
 #include <iostream>
 #include <fstream>
 
-
-
 LineDetection::LineDetection(Mat image, Mat imageBase, string imageName)
 {
     inputImage = image;
     baseImage = imageBase;
     demoImage = baseImage.clone();
     this->imageName = imageName;
-    
 }
 
 LineDetection::~LineDetection()
@@ -62,21 +59,18 @@ void LineDetection::detectLine()
 
     inputImage = imagetmp;
 
-    
     imwrite("../../imres/res.jpg", imagetmp);
 
     this->lineMask = lineMask;
     this->greenLineMask = greenLineMask;
     this->redLineMask = redLineMask;
     this->baseImage = imagetmp;
-
-    
 }
 
 void LineDetection::greenProjection()
 {
 
-        Mat element = getStructuringElement(MORPH_RECT,
+    Mat element = getStructuringElement(MORPH_RECT,
                                         Size(1, 15));
     Mat masktmp = lineMask.clone();
     Mat blueMask = Mat::zeros(cv::Size(lineMask.cols, lineMask.rows), lineMask.type());
@@ -86,7 +80,7 @@ void LineDetection::greenProjection()
     vector<int> projection = vector<int>(masktmp.rows, 0);
     vector<int> result;
     long moyenne = 0;
-    int lignesvert=0;
+    int lignesvert = 0;
     for (int i = 0; i < masktmp.rows; i++)
     {
         for (int j = 0; j < masktmp.cols; j++)
@@ -99,26 +93,22 @@ void LineDetection::greenProjection()
                 baseImage.at<Vec3b>(i, projection[i]) = {0, 255, 0};
             }
         }
-        if(projection[i]>0)
+        if (projection[i] > 0)
             lignesvert++;
-
-        
-
     }
-     moyenne/=lignesvert;
-     moyenne=1.2*moyenne;
+    moyenne /= lignesvert;
+    moyenne = 1.2 * moyenne;
 
+    for (int i = 0; i < projection.size(); i++)
+    {
+        if (projection[i] < moyenne)
+        {
+            int prevProjection = projection[i];
 
-     for (int i = 0; i < projection.size(); i ++)
-     {
-         if (projection[i] < moyenne)
-         {
-             int prevProjection  = projection[i];
-
-             projection[i] = 0;
+            projection[i] = 0;
             cv::line(baseImage, Point(0, i), Point(prevProjection, i), Scalar(255, 255, 255));
-         }
-     }
+        }
+    }
 
     int curmax = 0;
     int curmaxi = 0;
@@ -137,34 +127,26 @@ void LineDetection::greenProjection()
         }
         if (projection[i] == 0 && curmaxi > 0)
         {
-                cv::line(blueMask, Point(0, curmaxi), Point(baseImage.rows - 1, curmaxi), Scalar(255, 0, 0));
-                cv::line(baseImage, Point(projection[curmaxi], curmaxi), Point(baseImage.rows - 1, curmaxi), Scalar(255, 0, 0));
-                result.push_back(curmaxi);
+            cv::line(blueMask, Point(0, curmaxi), Point(baseImage.rows - 1, curmaxi), Scalar(255, 0, 0));
+            cv::line(baseImage, Point(projection[curmaxi], curmaxi), Point(baseImage.rows - 1, curmaxi), Scalar(255, 0, 0));
+            result.push_back(curmaxi);
 
-                nombredezeros = 0;
-                curmax = 0;
-                curmaxi = 0;
-                nombredeverts = 0;
-       
+            nombredezeros = 0;
+            curmax = 0;
+            curmaxi = 0;
+            nombredeverts = 0;
         }
-      
     }
     this->baseImage = baseImage;
     this->blueMask = blueMask;
 
-
     maximums = result;
 
-    
-        imwrite("../../imres/final.jpg", baseImage);
-
-    
+    imwrite("../../imres/final.jpg", baseImage);
 }
 
 void LineDetection::redLineRegression()
 {
-
-    
 
     int prev_max = maximums[0];
     RNG rng(12345);
@@ -185,38 +167,43 @@ void LineDetection::redLineRegression()
         }
 
         Vec4f ligne;
-        
 
-        if (points.size()> 0)
+        if (points.size() > 0)
         {
             fitLine(points, ligne, CV_DIST_L2, 0, 0.01, 0.01);
 
-        //line sous forme de vecteur, donc on le convertis
-        float vx = ligne[0];
-        float vy = ligne[1];
-        int x = (int)ligne[2];
-        int y = (int)ligne[3];
+            //line sous forme de vecteur, donc on le convertis
+            float vx = ligne[0];
+            float vy = ligne[1];
+            int x = (int)ligne[2];
+            int y = (int)ligne[3];
 
-        Point p1 = Point(x - (baseImage.rows + baseImage.cols) * vx, y - (baseImage.rows + baseImage.cols) * vy);
-        Point p2 = Point(x + (baseImage.rows + baseImage.cols) * vx, y + (baseImage.rows + baseImage.cols) * vy);
+            Point p1 = Point(x - (baseImage.rows + baseImage.cols) * vx, y - (baseImage.rows + baseImage.cols) * vy);
+            Point p2 = Point(x + (baseImage.rows + baseImage.cols) * vx, y + (baseImage.rows + baseImage.cols) * vy);
 
-        // line(rainbowMask,p1,p2,Scalar(0,255,255));
-        //line(baseImage,p1,p2,Scalar(0,255,255));
+            // line(rainbowMask,p1,p2,Scalar(0,255,255));
+            //line(baseImage,p1,p2,Scalar(0,255,255));
 
-        line(rainbowMask, p1, p2, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)));
+            line(rainbowMask, p1, p2, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)));
 
-        line(baseImage, p1, p2, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)));
-            
+            line(baseImage, p1, p2, Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255)));
         }
-         
-        
-        prev_max = maximums[i];
-        
-    }
-    
-    this->rainbowMask = rainbowMask;
 
-    
+        prev_max = maximums[i];
+    }
+/*
+    Mat element = getStructuringElement(MORPH_RECT,
+                                        Size(1, 3));
+
+    Mat dilatedMask;
+
+    dilate(rainbowMask, dilatedMask, element);
+
+    this->rainbowMask = dilatedMask;
+
+   */
+
+   this->rainbowMask = rainbowMask;
 }
 
 Mat LineDetection::getBaseImage()
@@ -226,9 +213,10 @@ Mat LineDetection::getBaseImage()
 
 void LineDetection::TextColoring()
 {
-    int seuil = 100;
-    int interval = 100;
+    int seuil = 254;
+    int interval = 50;
 
+    vector<Vec3b> bannedLines;
 
     for (int rows = 0; rows < rainbowMask.rows; rows++)
     {
@@ -236,31 +224,31 @@ void LineDetection::TextColoring()
         {
             if (rainbowMask.at<Vec3b>(rows, cols)[0] != 0 || rainbowMask.at<Vec3b>(rows, cols)[1] != 0 || rainbowMask.at<Vec3b>(rows, cols)[2] != 0)
             {
+                if (blueMask.at<Vec3b>(rows, cols)[0] != 0)
+                {
+                    bannedLines.push_back(rainbowMask.at<Vec3b>(rows, cols));
+                }
+
                 if (demoImage.at<Vec3b>(rows, cols)[0] < seuil && demoImage.at<Vec3b>(rows, cols)[1] < seuil && demoImage.at<Vec3b>(rows, cols)[2] < seuil)
                 {
-
-                    if (demoImage.at<Vec3b>(rows, cols) != rainbowMask.at<Vec3b>(rows, cols))
+                    if (isNotBanned(bannedLines, rainbowMask.at<Vec3b>(rows, cols)))
                     {
-                        floodFill(demoImage, Point(cols, rows), Scalar(rainbowMask.at<Vec3b>(rows, cols)[0], rainbowMask.at<Vec3b>(rows, cols)[1], rainbowMask.at<Vec3b>(rows, cols)[2]), 0, Scalar(interval, interval, interval), Scalar(interval, interval, interval), FLOODFILL_FIXED_RANGE);
+
+                        if (demoImage.at<Vec3b>(rows, cols) != rainbowMask.at<Vec3b>(rows, cols))
+                        {
+                            floodFill(demoImage, Point(cols, rows), Scalar(rainbowMask.at<Vec3b>(rows, cols)[0], rainbowMask.at<Vec3b>(rows, cols)[1], rainbowMask.at<Vec3b>(rows, cols)[2]), 0, Scalar(interval, interval, interval), Scalar(interval, interval, interval), FLOODFILL_FIXED_RANGE);
+                        }
                     }
                 }
             }
         }
     }
     this->demoImage = demoImage;
-    
-    
-
-
-    
-
-    
 }
-
 
 void LineDetection::affichage()
 {
-     for (int rows = 0; rows < demoImage.rows; rows++)
+    for (int rows = 0; rows < demoImage.rows; rows++)
     {
         for (int cols = 0; cols < demoImage.cols; cols++)
         {
@@ -278,7 +266,6 @@ void LineDetection::affichage()
 
             }
             */
-        
         }
     }
 
@@ -286,10 +273,9 @@ void LineDetection::affichage()
     imshow("LES LIGNES", lineMask);
 
     namedWindow("Approximation Lignes", WINDOW_AUTOSIZE);
-        imshow("Approximation Lignes", baseImage);
-        imwrite("../../imres/final.jpg", baseImage);
+    imshow("Approximation Lignes", baseImage);
+    imwrite("../../imres/final.jpg", baseImage);
 
-        
     namedWindow("Blue Image", WINDOW_AUTOSIZE);
     imshow("Blue Image", blueMask);
 
@@ -300,7 +286,6 @@ void LineDetection::affichage()
 Mat LineDetection::getFinalImage()
 {
     return this->demoImage;
-
 }
 int LineDetection::getMaximumSize()
 {
@@ -314,62 +299,66 @@ void LineDetection::save(int event, int x, int y, int flags, void *userdata)
 void LineDetection::writeEvalutation(string path)
 {
     vector<Vec3b> couleursVisite;
-    couleursVisite.push_back({255,255,255});
-    long count= 0 ;
+    couleursVisite.push_back({255, 255, 255});
+    long count = 0;
     ofstream file;
     file.open(path);
 
-        unsigned int *IM_SegmResult = (unsigned int *) calloc (demoImage.cols*demoImage.rows,sizeof(int));
-    FILE * pFile = fopen(path.c_str(), "w");
+    unsigned int *IM_SegmResult = (unsigned int *)calloc(demoImage.cols * demoImage.rows, sizeof(int));
+    FILE *pFile = fopen(path.c_str(), "w");
 
-     for (int rows = 0; rows < demoImage.rows; rows++)
+    for (int rows = 0; rows < demoImage.rows; rows++)
     {
         for (int cols = 0; cols < demoImage.cols; cols++)
         {
-            count ++;
-            bool find=false;
-           for(unsigned int tmpindice =0; tmpindice < couleursVisite.size();tmpindice++)
-           {
-               if(couleursVisite[tmpindice][0]==demoImage.at<Vec3b>(rows,cols)[0] && 
-               couleursVisite[tmpindice][1]==demoImage.at<Vec3b>(rows,cols)[1] && 
-               couleursVisite[tmpindice][2]==demoImage.at<Vec3b>(rows,cols)[2])
-               {
-                   //file <<  tmpindice;
-                    char * buff = new char[sizeof(int)];
-                *buff = tmpindice;
-               file.write(buff, sizeof(int));
-               delete[] buff;
+            count++;
+            bool find = false;
+            for (unsigned int tmpindice = 0; tmpindice < couleursVisite.size(); tmpindice++)
+            {
+                if (couleursVisite[tmpindice][0] == demoImage.at<Vec3b>(rows, cols)[0] &&
+                    couleursVisite[tmpindice][1] == demoImage.at<Vec3b>(rows, cols)[1] &&
+                    couleursVisite[tmpindice][2] == demoImage.at<Vec3b>(rows, cols)[2])
+                {
+                    //file <<  tmpindice;
+                    char *buff = new char[sizeof(int)];
+                    *buff = tmpindice;
+                    file.write(buff, sizeof(int));
+                    delete[] buff;
 
-                   IM_SegmResult[count]=tmpindice;
-                   find=true;
-                   break;
-               }
-           }
-           if(!find)
-           {
-               couleursVisite.push_back(demoImage.at<Vec3b>(rows,cols));
-               // test avec .write()
-               
-                char * buff = new char[sizeof(int)];
-                *buff = couleursVisite.size()-1;
-               //file.write(buff, sizeof(int));
+                    IM_SegmResult[count] = tmpindice;
+                    find = true;
+                    break;
+                }
+            }
+            if (!find)
+            {
+                couleursVisite.push_back(demoImage.at<Vec3b>(rows, cols));
+                // test avec .write()
 
-               //delete[] buff;
+                char *buff = new char[sizeof(int)];
+                *buff = couleursVisite.size() - 1;
+                //file.write(buff, sizeof(int));
 
-               IM_SegmResult[count]=couleursVisite.size() -1;
-               
-           }
-         
-            
+                //delete[] buff;
+
+                IM_SegmResult[count] = couleursVisite.size() - 1;
+            }
         }
-
-        
-
     }
-   // file.close();
+    // file.close();
 
-    
-    fwrite(IM_SegmResult,sizeof(int), demoImage.cols*demoImage.rows, pFile);
+    fwrite(IM_SegmResult, sizeof(int), demoImage.cols * demoImage.rows, pFile);
     fclose(pFile);
-    
+}
+
+bool LineDetection::isNotBanned(vector<Vec3b> bannedList, Vec3b Color)
+{
+    for (int i = 0; i < bannedList.size(); i++)
+    {
+        if (bannedList[i][0] == Color[0] && bannedList[i][1] == Color[1] && bannedList[i][2] == Color[2])
+        {
+            return false;
+        }
+    }
+    return true;
 }

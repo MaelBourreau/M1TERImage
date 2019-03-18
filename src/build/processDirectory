@@ -1,0 +1,7 @@
+for file in ../../images/*
+do
+	
+	./detectionLigne $file
+	echo "file : $file"
+done
+

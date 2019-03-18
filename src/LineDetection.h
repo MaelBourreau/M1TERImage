@@ -10,17 +10,15 @@ using namespace cv;
 /**
  * 
  */
-class LineDetection {
-private:
-	
+class LineDetection
+{
+  private:
 	Mat inputImage;
 	Mat lineMask;
 	Mat greenLineMask;
 	Mat redLineMask;
 	Mat rainbowMask;
 	Mat blueMask;
-
-
 
 	Mat baseImage;
 	Mat demoImage;
@@ -29,11 +27,7 @@ private:
 
 	vector<int> maximums;
 
-
-
-	
-
-public:
+  public:
 	/**
 	 * Default constructor
 	 */
@@ -50,18 +44,11 @@ public:
 	int getMaximumSize();
 	void writeEvalutation(string path);
 
-	
-	
-
 	void TextColoring();
 	void affichage();
-	
 
-
-
-
-	static void save(int event, int x, int y, int flags, void* userdata);
-
+	static void save(int event, int x, int y, int flags, void *userdata);
+	static bool isNotBanned(vector<Vec3b> bannedList, Vec3b Color);
 };
 
 #endif
