@@ -109,33 +109,62 @@ void LineDetection::greenProjection()
             cv::line(baseImage, Point(0, i), Point(prevProjection, i), Scalar(255, 255, 255));
         }
     }
+    vector<int> blocs;
 
     int curmax = 0;
     int curmaxi = 0;
     int nombredezeros = 0;
-    int nombredeverts = 0;
+    int zeros_seuil = 20;
+
     for (int i = 0; i < projection.size(); i++)
     {
-        if (projection[i] != 0)
+        if (projection[i] == 0)
         {
-            nombredeverts++;
+            nombredezeros++;
+            if (nombredezeros > zeros_seuil)
+            {
+                
+                nombredezeros=0;
+                if (blocs.size()>0)
+                {
+                    int min_proj_i = blocs[0];
+                    for (int bloc_pos : blocs)
+                    {
+                        if (projection[bloc_pos] < projection[min_proj_i])
+                        {
+                             min_proj_i = bloc_pos;
+
+                        }
+                    }
+                    cv::line(blueMask, Point(0, min_proj_i), Point(baseImage.cols - 1, min_proj_i), Scalar(255, 0, 0));
+                    cv::line(baseImage, Point(projection[min_proj_i], min_proj_i), Point(baseImage.cols - 1, min_proj_i), Scalar(255, 0, 0));
+                    result.push_back(min_proj_i);
+                    blocs.clear();
+
+                }
+
+                
+            }
+
         }
         if (projection[i] > curmax)
         {
+            nombredezeros=0;
+
             curmax = projection[i];
             curmaxi = i;
         }
         if (projection[i] == 0 && curmaxi > 0)
         {
-            cv::line(blueMask, Point(0, curmaxi), Point(baseImage.rows - 1, curmaxi), Scalar(255, 0, 0));
-            cv::line(baseImage, Point(projection[curmaxi], curmaxi), Point(baseImage.rows - 1, curmaxi), Scalar(255, 0, 0));
-            result.push_back(curmaxi);
+            blocs.push_back(curmaxi);
+            
 
             nombredezeros = 0;
             curmax = 0;
             curmaxi = 0;
-            nombredeverts = 0;
         }
+
+
     }
     this->baseImage = baseImage;
     this->blueMask = blueMask;
@@ -213,6 +242,8 @@ Mat LineDetection::getBaseImage()
 
 void LineDetection::TextColoring()
 {
+
+
     int seuil = 254;
     int interval = 50;
 
@@ -236,39 +267,55 @@ void LineDetection::TextColoring()
 
                         if (demoImage.at<Vec3b>(rows, cols) != rainbowMask.at<Vec3b>(rows, cols))
                         {
-                            floodFill(demoImage, Point(cols, rows), Scalar(rainbowMask.at<Vec3b>(rows, cols)[0], rainbowMask.at<Vec3b>(rows, cols)[1], rainbowMask.at<Vec3b>(rows, cols)[2]), 0, Scalar(interval, interval, interval), Scalar(interval, interval, interval), FLOODFILL_FIXED_RANGE);
+                            if (demoImage.at<Vec3b>(rows, cols)[0] != 0 && demoImage.at<Vec3b>(rows, cols)[1] != 0 && demoImage.at<Vec3b>(rows, cols)[1] != 0)
+                            {
+                                floodFill(demoImage, Point(cols, rows), Scalar(0,0,255), 0, Scalar(interval, interval, interval), Scalar(interval, interval, interval), FLOODFILL_FIXED_RANGE);
+                           
+                            }
+                            else
+                            {
+                                floodFill(demoImage, Point(cols, rows), Scalar(rainbowMask.at<Vec3b>(rows, cols)[0], rainbowMask.at<Vec3b>(rows, cols)[1], rainbowMask.at<Vec3b>(rows, cols)[2]), 0, Scalar(interval, interval, interval), Scalar(interval, interval, interval), FLOODFILL_FIXED_RANGE);
+                            }
+                           
                         }
                     }
                 }
             }
+
+
+        
         }
     }
     this->demoImage = demoImage;
+
+    imwrite("../../imres/final_image_before.jpg", demoImage);
 }
 
 void LineDetection::affichage()
 {
+    
     for (int rows = 0; rows < demoImage.rows; rows++)
     {
         for (int cols = 0; cols < demoImage.cols; cols++)
         {
-            /*
+            
             if (blueMask.at<Vec3b>(rows,cols)[0] != 0)
             {
                 demoImage.at<Vec3b>(rows,cols)[0]=255;
                 demoImage.at<Vec3b>(rows,cols)[1]=0;
                 demoImage.at<Vec3b>(rows,cols)[2]=0;
             }
-            
+           
             if (rainbowMask.at<Vec3b>(rows,cols)[0] != 0 || rainbowMask.at<Vec3b>(rows,cols)[1] != 0 || rainbowMask.at<Vec3b>(rows,cols)[1] != 0)
             {
                 demoImage.at<Vec3b>(rows,cols) = rainbowMask.at<Vec3b>(rows,cols);
 
             }
-            */
+           
+            
         }
     }
-
+    
     namedWindow("LES LIGNES", WINDOW_AUTOSIZE);
     imshow("LES LIGNES", lineMask);
 
@@ -294,6 +341,23 @@ int LineDetection::getMaximumSize()
 
 void LineDetection::save(int event, int x, int y, int flags, void *userdata)
 {
+}
+
+void LineDetection::postProcess()
+{
+
+       for (int rows = 0; rows < demoImage.rows; rows++)
+    {
+        for (int cols = 0; cols < demoImage.cols; cols++)
+        {
+            if (demoImage.at<Vec3b>(rows,cols)[0] == 0 && demoImage.at<Vec3b>(rows,cols)[1] == 0 && demoImage.at<Vec3b>(rows,cols)[1] == 0)
+            {
+                neirestColoredNeighbors(Point(cols,rows));
+
+            }
+        }
+    }
+                
 }
 
 void LineDetection::writeEvalutation(string path)
@@ -361,4 +425,139 @@ bool LineDetection::isNotBanned(vector<Vec3b> bannedList, Vec3b Color)
         }
     }
     return true;
+}
+
+void LineDetection::neirestColoredNeighbors (Point p)
+{
+
+
+
+    int size = 1;
+    bool colored = false;
+    int pos_x,pos_y;
+
+    
+    while (!colored)
+    {
+        pos_x = p.x-size;
+        pos_y= p.y-size ;
+
+        int pos_x_depart = pos_x;
+        int pos_y_depart = pos_y;
+
+
+        for (pos_x; pos_x<pos_x_depart+2*size; pos_x++)
+        {
+            blueMask.at<Vec3b>(pos_y,pos_x)[2] = 255;
+
+            if ((demoImage.at<Vec3b>(pos_y,pos_x)[0] != 0 && demoImage.at<Vec3b>(pos_y,pos_x)[1] != 0 && demoImage.at<Vec3b>(pos_y,pos_x)[2] != 0 ) && (demoImage.at<Vec3b>(pos_y,pos_x)[0] != 255 && demoImage.at<Vec3b>(pos_y,pos_x)[1] != 255  && demoImage.at<Vec3b>(pos_y,pos_x)[2] != 255 ))
+            {
+                 floodFill(demoImage, p, Scalar(demoImage.at<Vec3b>(pos_y, pos_x)[0],demoImage.at<Vec3b>(pos_y, pos_x)[1],demoImage.at<Vec3b>(pos_y, pos_x)[2]), 0, Scalar(10, 10, 10), Scalar(10, 10, 10), FLOODFILL_FIXED_RANGE);
+               
+                 colored = true;
+                break;
+            }
+        }
+        pos_x_depart = pos_x;
+
+        if (colored)
+            break;
+        for (pos_y; pos_y<pos_y_depart+2*size; pos_y++)
+        {
+            blueMask.at<Vec3b>(pos_y,pos_x)[1] = 255;
+            if ((demoImage.at<Vec3b>(pos_y,pos_x)[0] != 0 && demoImage.at<Vec3b>(pos_y,pos_x)[1] != 0 && demoImage.at<Vec3b>(pos_y,pos_x)[2] != 0 ) && (demoImage.at<Vec3b>(pos_y,pos_x)[0] != 255 && demoImage.at<Vec3b>(pos_y,pos_x)[1] != 255  && demoImage.at<Vec3b>(pos_y,pos_x)[2] != 255 ))
+            {
+                 floodFill(demoImage, p, Scalar(demoImage.at<Vec3b>(pos_y, pos_x)[0],demoImage.at<Vec3b>(pos_y, pos_x)[1],demoImage.at<Vec3b>(pos_y, pos_x)[2]), 0, Scalar(10, 10, 10), Scalar(10, 10, 10), FLOODFILL_FIXED_RANGE);
+               
+                   colored = true;
+                break;
+            }
+        }
+        pos_y_depart = pos_y;
+
+        if (colored)
+            break;
+
+        for (pos_x; pos_x>pos_x_depart-2*size; pos_x--)
+        {
+            blueMask.at<Vec3b>(pos_y,pos_x)[2] = 255;
+           if ((demoImage.at<Vec3b>(pos_y,pos_x)[0] != 0 && demoImage.at<Vec3b>(pos_y,pos_x)[1] != 0 && demoImage.at<Vec3b>(pos_y,pos_x)[2] != 0 ) && (demoImage.at<Vec3b>(pos_y,pos_x)[0] != 255 && demoImage.at<Vec3b>(pos_y,pos_x)[1] != 255  && demoImage.at<Vec3b>(pos_y,pos_x)[2] != 255 ))
+             {
+                  floodFill(demoImage, p, Scalar(demoImage.at<Vec3b>(pos_y, pos_x)[0],demoImage.at<Vec3b>(pos_y, pos_x)[1],demoImage.at<Vec3b>(pos_y, pos_x)[2]), 0, Scalar(10, 10, 10), Scalar(10, 10, 10), FLOODFILL_FIXED_RANGE);
+               
+                colored = true;
+                break;
+            }
+        }
+        pos_x_depart = pos_x;
+
+        if (colored)
+            break;
+        for (pos_y; pos_y>pos_y_depart-2*size; pos_y--)
+        {
+            blueMask.at<Vec3b>(pos_y,pos_x)[1] = 255;
+            if ((demoImage.at<Vec3b>(pos_y,pos_x)[0] != 0 && demoImage.at<Vec3b>(pos_y,pos_x)[1] != 0 && demoImage.at<Vec3b>(pos_y,pos_x)[2] != 0 ) && (demoImage.at<Vec3b>(pos_y,pos_x)[0] != 255 && demoImage.at<Vec3b>(pos_y,pos_x)[1] != 255  && demoImage.at<Vec3b>(pos_y,pos_x)[2] != 255 ))
+            {
+                floodFill(demoImage, p, Scalar(demoImage.at<Vec3b>(pos_y, pos_x)[0],demoImage.at<Vec3b>(pos_y, pos_x)[1],demoImage.at<Vec3b>(pos_y, pos_x)[2]), 0, Scalar(10, 10, 10), Scalar(10, 10, 10), FLOODFILL_FIXED_RANGE);
+                  colored = true;
+                break;
+            }
+        }
+        pos_y_depart = pos_y;
+
+        size++;
+
+
+    }
+
+    /*
+    int size_line=1;
+    colored=false;
+    bool down = false;
+    while(!colored){
+        blueMask.at<Vec3b>(p.y+size_line, p.x)[2] = 255;
+        blueMask.at<Vec3b>(p.y-size_line,p.x)[2]=255;
+
+        int nbZero = 0;
+
+        if (rainbowMask.at<Vec3b>(p.y+size_line,p.x)[0] == 0)
+            nbZero++;
+        if (rainbowMask.at<Vec3b>(p.y+size_line,p.x)[1] == 0)
+            nbZero++;
+        if (rainbowMask.at<Vec3b>(p.y+size_line,p.x)[2] == 0)
+            nbZero++;
+
+        if(nbZero<3 ){
+            colored =true;
+            down = true;
+        }
+        else{
+                nbZero=0;
+            if (p.y-size_line > 0 && rainbowMask.at<Vec3b>(p.y-size_line,p.x)[0] == 0)
+                nbZero++;
+            if (p.y-size_line > 0 && rainbowMask.at<Vec3b>(p.y-size_line,p.x)[1] == 0)
+                nbZero++;
+            if (p.y-size_line > 0 && rainbowMask.at<Vec3b>(p.y-size_line,p.x)[2] == 0)
+                nbZero++;
+            if( p.y-size_line > 0 && nbZero<3  )
+            {
+                colored =true;
+            }
+            else
+            {
+                size_line++;   
+                if (size> size_line)
+                break;
+            }
+        }
+    }
+    
+        if(down){
+            floodFill(demoImage, p, Scalar(rainbowMask.at<Vec3b>(p.y+size_line, p.x)[0],rainbowMask.at<Vec3b>(p.y+size_line, p.x)[1],rainbowMask.at<Vec3b>(p.y+size_line, p.x)[2]), 0, Scalar(10, 10, 10), Scalar(10, 10, 10), FLOODFILL_FIXED_RANGE);
+        }
+        else{
+            floodFill(demoImage, p, Scalar(rainbowMask.at<Vec3b>(p.y-size_line, p.x)[0],rainbowMask.at<Vec3b>(p.y-size_line, p.x)[1],rainbowMask.at<Vec3b>(p.y-size_line, p.x)[2]), 0, Scalar(10, 10, 10), Scalar(10, 10, 10), FLOODFILL_FIXED_RANGE);
+        }
+        */
+
 }

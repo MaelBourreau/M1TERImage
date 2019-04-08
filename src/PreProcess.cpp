@@ -36,7 +36,7 @@ void PreProcess::gaussian(int size, void *data)
 		size++;
 	GaussianBlur(outputImage, tmp2, Size(size, size), 0);
 	GaussianBlur(tmp2, ((PreProcess *)data)->finalImage, Size(size, size), 0);
-	imshow("Input Image", ((PreProcess *)data)->finalImage);
+	//imshow("Input Image", ((PreProcess *)data)->finalImage);
 }
 
 void PreProcess::dilatation(int size, void *data)
@@ -53,7 +53,7 @@ void PreProcess::dilatation(int size, void *data)
 	erode(inputImage, outputImage, element);
 	((PreProcess *)data)->outputImage = outputImage;
 
-	imshow("Input Image", outputImage);
+	
 }
 
 void PreProcess::process()
@@ -67,7 +67,7 @@ void PreProcess::process()
 	//createTrackbar("Gaussien", "Input Image", &gaussian_ksize, 100, gaussian, this);
 
 	//setMouseCallback("Input Image",save, this);
-	imshow("Input Image", inputImage);
+	
 }
 
 void PreProcess::save(int event, int x, int y, int flags, void *userdata)

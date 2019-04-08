@@ -43,7 +43,10 @@ class LineDetection
 	Mat getFinalImage();
 	int getMaximumSize();
 	void writeEvalutation(string path);
+	void neirestColoredNeighbors(Point p);
+	void postProcess();
 
+	
 	void TextColoring();
 	void affichage();
 
